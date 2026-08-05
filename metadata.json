@@ -1,0 +1,8 @@
+{
+  "cohort": "K4",
+  "policy_version": "EC_POLICY_V2",
+  "model": "llama-3.1-8b-instant",
+  "parameter_size": 8000000000,
+  "framework": "Groq Cloud API / Multi-Agent Python Pipeline",
+  "runtime": "Python 3.12"
+}
