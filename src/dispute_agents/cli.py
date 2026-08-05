@@ -14,7 +14,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 import langgraph
 
 from .config import MODEL_BY_AGENT, POLICY_VERSION
-from .llm import HuggingFaceLLM
+from .llm import MultiProviderLLM
 from .models import CaseInput
 from .repository import OlistRepository
 from .tracing import TraceLogger
@@ -40,10 +40,10 @@ def load_cases(input_dir: Path) -> list[CaseInput]:
 
 
 def preflight_models(_: argparse.Namespace) -> int:
-    llm = HuggingFaceLLM()
-    unique = {config.model: config for config in MODEL_BY_AGENT.values()}
-    for model, config in unique.items():
-        llm.complete(model=model, system="Return only a JSON acknowledgement.", payload={"healthcheck": True})
+    llm = MultiProviderLLM()
+    unique = {(config.provider, config.model): config for config in MODEL_BY_AGENT.values()}
+    for (provider, model), config in unique.items():
+        llm.complete(provider=provider, model=model, system="Return only a JSON acknowledgement.", payload={"healthcheck": True})
         print(f"OK {model} ({config.provider})")
     return 0
 

@@ -3,8 +3,9 @@ from pathlib import Path
 
 import pytest
 
+from dispute_agents.config import MODEL_BY_AGENT, PROVIDER_BY_NAME
 from dispute_agents.models import CaseInput
-from dispute_agents.llm import build_user_content, max_tokens_for_model
+from dispute_agents.llm import MultiProviderLLM, build_user_content, max_tokens_for_model
 from dispute_agents.repository import OlistRepository
 from dispute_agents.workflow import DisputeWorkflow
 
@@ -13,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class EmptyLLM:
-    def complete(self, *, model: str, system: str, payload: dict) -> str:
+    def complete(self, *, provider: str, model: str, system: str, payload: dict) -> str:
         return ""
 
 
@@ -25,11 +26,36 @@ def test_workflow_rejects_empty_model_reply_in_strict_mode():
         workflow.run_case(case)
 
 
-def test_qwen3_prompt_disables_thinking_so_json_reaches_content():
-    assert build_user_content("Qwen/Qwen3-8B:nscale", {"candidate": {}}).endswith("/no_think")
-    assert not build_user_content("Qwen/Qwen2.5-7B-Instruct:together", {"candidate": {}}).endswith("/no_think")
+def test_model_configuration_uses_three_free_models_within_lab_limit():
+    assert set(config.provider for config in MODEL_BY_AGENT.values()) == {"ollama", "openrouter", "nvidia"}
+    assert all(config.parameters_billion <= 10 for config in MODEL_BY_AGENT.values())
+    assert PROVIDER_BY_NAME["ollama"].credential_env is None
+    assert PROVIDER_BY_NAME["openrouter"].credential_env == "OPENROUTER_API_KEY"
+    assert PROVIDER_BY_NAME["nvidia"].credential_env == "NVIDIA_API_KEY"
 
 
-def test_deepseek_gets_room_for_reasoning_and_final_json():
-    assert max_tokens_for_model("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B:nscale") == 1000
-    assert max_tokens_for_model("Qwen/Qwen3-8B:nscale") == 250
+def test_provider_client_uses_its_own_base_url_and_credential(monkeypatch):
+    created: list[tuple[str, str]] = []
+
+    class RecordingClient:
+        def __init__(self, *, base_url: str, api_key: str, timeout: float):
+            created.append((base_url, api_key, timeout))
+
+    llm = MultiProviderLLM(
+        secrets={"OPENROUTER_API_KEY": "openrouter-token", "NVIDIA_API_KEY": "nvidia-token"},
+        client_factory=RecordingClient,
+    )
+
+    assert llm.client_for("ollama") is llm.client_for("ollama")
+    assert llm.client_for("openrouter") is llm.client_for("openrouter")
+    assert llm.client_for("nvidia") is llm.client_for("nvidia")
+    assert created == [
+        ("http://localhost:11434/v1/", "ollama", 60.0),
+        ("https://openrouter.ai/api/v1/", "openrouter-token", 60.0),
+        ("https://integrate.api.nvidia.com/v1/", "nvidia-token", 60.0),
+    ]
+
+
+def test_model_payload_is_plain_json_and_models_get_enough_output_tokens():
+    assert build_user_content("qwen3:8b", {"candidate": {}}) == '{"candidate": {}}'
+    assert max_tokens_for_model("qwen3:8b") == 500

@@ -3,30 +3,45 @@ from __future__ import annotations
 import json
 import os
 import time
+from collections.abc import Callable
 from typing import Protocol, TypeVar
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
-from .config import HF_ROUTER_URL, MODEL_BY_AGENT
+from .config import MODEL_BY_AGENT, PROVIDER_BY_NAME, ProviderName
 from .tracing import TraceLogger
 
 
 class LLMClient(Protocol):
-    def complete(self, *, model: str, system: str, payload: dict) -> str: ...
+    def complete(self, *, provider: ProviderName, model: str, system: str, payload: dict) -> str: ...
 
 
-class HuggingFaceLLM:
-    def __init__(self, token: str | None = None):
+class MultiProviderLLM:
+    """Routes each agent call to its configured OpenAI-compatible provider."""
+
+    def __init__(self, secrets: dict[str, str | None] | None = None, client_factory: Callable[..., OpenAI] = OpenAI):
         load_dotenv()
-        token = token or os.getenv("HF_TOKEN")
-        if not token:
-            raise RuntimeError("HF_TOKEN is required. Copy .env.example to .env and set a Hugging Face Inference Providers token.")
-        self.client = OpenAI(base_url=HF_ROUTER_URL, api_key=token)
+        self.secrets = secrets or {}
+        self.client_factory = client_factory
+        self.clients: dict[ProviderName, OpenAI] = {}
 
-    def complete(self, *, model: str, system: str, payload: dict) -> str:
-        completion = self.client.chat.completions.create(
+    def client_for(self, provider: ProviderName) -> OpenAI:
+        if provider not in PROVIDER_BY_NAME:
+            raise ValueError(f"Unsupported provider: {provider}")
+        if provider in self.clients:
+            return self.clients[provider]
+        config = PROVIDER_BY_NAME[provider]
+        token = "ollama" if config.credential_env is None else self.secrets.get(config.credential_env) or os.getenv(config.credential_env)
+        if not token:
+            raise RuntimeError(f"{config.credential_env} is required for {provider}. Copy .env.example to .env and set it.")
+        client = self.client_factory(base_url=config.base_url, api_key=token, timeout=60.0)
+        self.clients[provider] = client
+        return client
+
+    def complete(self, *, provider: ProviderName, model: str, system: str, payload: dict) -> str:
+        completion = self.client_for(provider).chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": system},
@@ -43,9 +58,11 @@ class FakeLLM:
 
     def __init__(self):
         self.calls: list[tuple[str, dict]] = []
+        self.routes: list[tuple[ProviderName, str]] = []
 
-    def complete(self, *, model: str, system: str, payload: dict) -> str:
+    def complete(self, *, provider: ProviderName, model: str, system: str, payload: dict) -> str:
         self.calls.append((model, payload))
+        self.routes.append((provider, model))
         if "verification_candidate" in payload:
             return '{"approved":true,"corrections":[]}'
         if "candidate" in payload:
@@ -66,15 +83,12 @@ SYSTEM_PROMPTS = {
 T = TypeVar("T", bound=BaseModel)
 
 
-def build_user_content(model: str, payload: dict) -> str:
-    content = json.dumps(payload, ensure_ascii=False, default=str)
-    if model.startswith("Qwen/Qwen3-"):
-        content += "\n/no_think"
-    return content
+def build_user_content(_: str, payload: dict) -> str:
+    return json.dumps(payload, ensure_ascii=False, default=str)
 
 
 def max_tokens_for_model(model: str) -> int:
-    return 1000 if model.startswith("deepseek-ai/DeepSeek-R1-") else 250
+    return 500
 
 
 def parse_model_json(raw: str) -> dict:
@@ -110,7 +124,7 @@ class AgentInvoker:
             started = time.perf_counter()
             self.trace.event(case_id=case_id, agent=agent, event="model_started", model=config.model, provider=config.provider, attempt=attempt)
             try:
-                answer = self.llm.complete(model=config.model, system=SYSTEM_PROMPTS[agent], payload=payload)
+                answer = self.llm.complete(provider=config.provider, model=config.model, system=SYSTEM_PROMPTS[agent], payload=payload)
                 if not answer.strip():
                     raise ValueError("Model response was empty")
                 result = response_model.model_validate(parse_model_json(answer)) if response_model else answer

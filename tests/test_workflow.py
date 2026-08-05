@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from dispute_agents.config import MODEL_BY_AGENT
 from dispute_agents.llm import FakeLLM
 from dispute_agents.repository import OlistRepository
 from dispute_agents.models import CaseInput
@@ -27,6 +28,10 @@ def test_workflow_runs_all_agents_and_builds_seller_late_output():
     assert output.root_cause_analysis.ranked_causes[0].cause_code == "SELLER_HANDOFF_AFTER_LIMIT"
     assert output.evidence_ids[-1] == "policy:SELLER_HANDOFF_AFTER_LIMIT"
     assert len(fake.calls) == 8  # Coordinator is called before routing and after verification.
+    assert fake.routes == [
+        (MODEL_BY_AGENT[agent].provider, MODEL_BY_AGENT[agent].model)
+        for agent in ["coordinator", "customer", "order_product", "payment", "delivery", "policy", "verifier", "coordinator"]
+    ]
     assert {event["agent"] for event in trace.events} >= {
         "coordinator", "customer", "order_product", "payment", "delivery", "policy", "verifier"
     }

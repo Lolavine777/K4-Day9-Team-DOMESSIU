@@ -6,7 +6,7 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel
 
 from .facts import customer_handoff, delivery_handoff, order_product_handoff, payment_handoff
-from .llm import AgentInvoker, HuggingFaceLLM, LLMClient
+from .llm import AgentInvoker, LLMClient, MultiProviderLLM
 from .models import (
     CaseInput,
     CaseOutput,
@@ -42,7 +42,7 @@ class DisputeWorkflow:
     def __init__(self, *, repository: OlistRepository, llm: LLMClient | None = None, trace: TraceLogger | None = None):
         self.repository = repository
         self.trace = trace or TraceLogger()
-        self.invoker = AgentInvoker(llm or HuggingFaceLLM(), self.trace)
+        self.invoker = AgentInvoker(llm or MultiProviderLLM(), self.trace)
         self.policy_engine = PolicyEngine()
         self.graph = self._build_graph()
 

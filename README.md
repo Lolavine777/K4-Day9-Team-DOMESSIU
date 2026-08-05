@@ -5,7 +5,9 @@
 ```powershell
 python -m pip install -e .
 Copy-Item .env.example .env
-# Điền HF_TOKEN vào .env, sau đó chấp nhận license Llama trên Hugging Face.
+# Install Ollama, then download the local model.
+ollama pull qwen3:8b
+# Add OPENROUTER_API_KEY and NVIDIA_API_KEY to .env.
 python -m dispute_agents preflight-models
 python -m dispute_agents run
 python -m dispute_agents validate
