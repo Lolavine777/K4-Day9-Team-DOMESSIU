@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "olist-dispute-agents"
+version = "0.1.0"
+description = "Multi-agent Olist dispute-resolution lab"
+requires-python = ">=3.10"
+dependencies = [
+  "langgraph>=0.2",
+  "openai>=1.0",
+  "pandas>=2.0",
+  "pydantic>=2.0",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+dispute-agents = "dispute_agents.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

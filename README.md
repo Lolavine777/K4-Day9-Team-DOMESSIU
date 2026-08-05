@@ -1,5 +1,19 @@
 # K4 Day 09 - Multi-Agent E-commerce Dispute Resolution
 
+## Chạy pipeline đã triển khai
+
+```powershell
+python -m pip install -e .
+Copy-Item .env.example .env
+# Điền HF_TOKEN vào .env, sau đó chấp nhận license Llama trên Hugging Face.
+python -m dispute_agents preflight-models
+python -m dispute_agents run
+python -m dispute_agents validate
+python -m dispute_agents package
+```
+
+Pipeline dùng LangGraph với bảy agent model-backed. `run` ở strict mode: không có fallback khi model/provider lỗi; output chỉ được thay sau khi toàn bộ 50 case qua Pydantic/evidence validation.
+
 ## 1. Bài toán
 
 Xây dựng một hệ thống multi-agent để điều tra 50 yêu cầu hỗ trợ của khách hàng trên dữ liệu Olist. Với mỗi case, hệ thống phải đối chiếu nhiều nguồn dữ liệu, xác định vấn đề chính và vấn đề phụ, bên chịu trách nhiệm, bằng chứng, khoản hoàn đề xuất và các hành động xử lý.

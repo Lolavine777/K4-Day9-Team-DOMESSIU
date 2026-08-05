@@ -1,0 +1,15 @@
+{
+  "policy_version": "EC_POLICY_V2",
+  "models": [
+    {"agent": "coordinator", "model": "Qwen/Qwen3-8B:nscale", "parameter_size": "8.2B", "provider": "nscale"},
+    {"agent": "customer", "model": "Qwen/Qwen2.5-7B-Instruct:together", "parameter_size": "7B", "provider": "together"},
+    {"agent": "order_product", "model": "meta-llama/Llama-3.1-8B-Instruct:deepinfra", "parameter_size": "8B", "provider": "deepinfra"},
+    {"agent": "payment", "model": "Qwen/Qwen2.5-7B-Instruct:together", "parameter_size": "7B", "provider": "together"},
+    {"agent": "delivery", "model": "meta-llama/Llama-3.1-8B-Instruct:deepinfra", "parameter_size": "8B", "provider": "deepinfra"},
+    {"agent": "policy", "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B:nscale", "parameter_size": "7B", "provider": "nscale"},
+    {"agent": "verifier", "model": "Qwen/Qwen3-8B:nscale", "parameter_size": "8.2B", "provider": "nscale"}
+  ],
+  "framework": {"name": "LangGraph"},
+  "runtime": {"language": "Python", "status": "not_run"},
+  "run": null
+}

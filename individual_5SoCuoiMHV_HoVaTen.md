@@ -1,121 +1,78 @@
-# Member Role Report — Day 9: Multi Agent A2A
+# Member Role Report — Day 9: Multi-Agent E-commerce Dispute Resolution
 
-> Mỗi thành viên trong nhóm tự hoàn thành mẫu này để báo cáo đúng vai trò, phần việc và mức hiểu của mình. Không sao chép nguyên báo cáo chung hoặc báo cáo của thành viên khác. Thay nội dung trong dấu `[ ]` và xóa các dòng hướng dẫn không cần thiết trước khi nộp.
+> Rename this file to `individual_<5 số cuối MSSV>_<HoVaTen>.md` and replace bracketed identity fields before submission.
 
 ## 1. Thông tin cá nhân
 
-| Thông tin       | Nội dung     |
-| --------------- | ------------ |
-| Họ và tên       | [Họ và tên]  |
-| MSSV            | [MSSV]       |
-| Khóa/Lớp        | [K4]         |
-| Vai trò chính   | [Vai trò]    |
+| Thông tin | Nội dung |
+|---|---|
+| Họ và tên | [Họ và tên] |
+| MSSV | [MSSV] |
+| Khóa/Lớp | K4 |
+| Vai trò chính | [Vai trò trong nhóm] |
 | Ngày hoàn thành | [YYYY-MM-DD] |
 
-## 2. Vai trò và phạm vi công việc
+## 2. Vai trò và phần việc sở hữu
 
-### Phần việc sở hữu
+| Deliverable | Input | Output | Xác minh |
+|---|---|---|---|
+| [Ví dụ: Payment Agent] | order items, payments | reconciliation handoff | `pytest` và `validate` |
+| [Ví dụ: Verifier] | policy draft, CSV-backed IDs | output JSON hợp schema | `python -m dispute_agents validate` |
 
-| Module/deliverable | File/hàm phụ trách | Input nhận vào | Output bàn giao   | Trạng thái                            |
-| ------------------ | ------------------ | -------------- | ----------------- | ------------------------------------- |
-| [Phần việc]        | [File/hàm]         | [Input]        | [Output/artifact] | [Hoàn thành/Một phần/Chưa hoàn thành] |
-| [Phần việc]        | [File/hàm]         | [Input]        | [Output/artifact] | [Hoàn thành/Một phần/Chưa hoàn thành] |
+Chỉ liệt kê phần trực tiếp thực hiện. Ghi rõ người/module nhận handoff từ phần việc này.
 
-Chỉ nhận ownership cho phần bạn trực tiếp thực hiện. Liên hệ rõ phần việc của bạn với đầu vào, đầu ra và các thành viên phụ thuộc vào phần đó.
+## 3. Giải thích kỹ thuật
 
-### Việc hỗ trợ ngoài phạm vi chính
+### Vấn đề giải quyết
 
-| Hoạt động                 | Thành viên/module được hỗ trợ | Kết quả                 |
-| ------------------------- | ----------------------------- | ----------------------- |
-| [Debug/tích hợp/tài liệu] | [Tên hoặc module]             | [Kết quả và bằng chứng] |
-
-## 3. Kết quả theo vai trò
-
-| Nhiệm vụ đã thực hiện | File/hàm/artifact liên quan | Kết quả bàn giao          | Cách xác minh   |
-| --------------------- | --------------------------- | ------------------------- | --------------- |
-| [Mô tả cụ thể]        | [Đường dẫn file]            | [Artifact/metrics/report] | [Lệnh/artifact] |
-| [Mô tả cụ thể]        | [Đường dẫn file]            | [Artifact/metrics/report] | [Lệnh/artifact] |
-
-Nêu một output cụ thể mà phần việc của bạn tạo ra hoặc giúp xác minh:
-
-[Mô tả artifact, metric, report hoặc kết quả tích hợp.]
-
-## 4. Giải thích phần kỹ thuật đã thực hiện
-
-### Vấn đề cần giải quyết
-
-[Phần của bạn giải quyết vấn đề gì trong pipeline?]
+[Mô tả domain agent phụ trách: customer history, order/product, payment, delivery, policy hoặc verification.]
 
 ### Cách triển khai
 
-[Mô tả thuật toán, quy tắc dữ liệu, orchestration hoặc quyết định chính. Không chỉ chép lại tên hàm.]
+[Mô tả model dùng, tool CSV được phép gọi, Pydantic handoff schema, cách tránh suy diễn dữ liệu và cách xử lý lỗi.]
 
-### Input, output và contract
+### Contract
 
-| Thành phần              | Mô tả                                  |
-| ----------------------- | -------------------------------------- |
-| Input                   | [Schema, artifact hoặc tham số]        |
-| Output                  | [Schema, artifact hoặc giá trị trả về] |
-| Module phụ thuộc        | [Module/file liên quan]                |
-| Module sử dụng output   | [Module/file liên quan]                |
-| Điều kiện lỗi cần xử lý | [Trường hợp thực tế]                   |
+| Thành phần | Nội dung |
+|---|---|
+| Input | [Case/handoff/tool facts] |
+| Output | [Tên handoff hoặc artifact] |
+| Consumer | [Agent/module nhận kết quả] |
+| Failure handling | [Retry, reject, schema validation] |
 
-### Cách xác minh
+## 4. Xác minh
 
-```bash
-[Ghi lệnh thực tế đã chạy]
+```powershell
+python -m pip install -e .
+python -m pytest -q
+python -m dispute_agents preflight-models
+python -m dispute_agents run
+python -m dispute_agents validate
 ```
 
-- **Kết quả mong đợi:** [Mô tả.]
-- **Kết quả thực tế:** [Mô tả.]
-- **Artifact/log:** [Đường dẫn; không chứa secret.]
+- Kết quả mong đợi: 50 output JSON hợp schema; trace thể hiện đủ model invocation; metadata ghi model/runtime.
+- Artifact: `output/`, `logging/trace.jsonl`, `logging/metadata.json`.
 
-## 5. Một quyết định kỹ thuật quan trọng
+## 5. Một quyết định kỹ thuật
 
-- **Bối cảnh:** [Vấn đề hoặc lựa chọn cần quyết định.]
-- **Các phương án đã cân nhắc:** [Ít nhất hai phương án.]
-- **Phương án đã chọn:** [Lựa chọn.]
-- **Lý do:** [Trade-off về correctness, data quality, reproducibility, cost hoặc độ phức tạp.]
-- **Bằng chứng quyết định phù hợp:** [Metric, artifact hoặc kết quả thử nghiệm.]
+- Bối cảnh: policy cần kết quả chính xác và tái lập, trong khi từng agent vẫn phải sử dụng model ≤10B.
+- Phương án cân nhắc: để LLM tự tính toàn bộ; hoặc dùng LLM phân tích facts do tool xác định.
+- Phương án chọn: model-backed agent với tool tính `Decimal`, datetime, join CSV và verifier schema.
+- Lý do: đảm bảo multi-agent thật, đồng thời không suy diễn và không sai số tiền/timestamp.
 
-## 6. Một lỗi hoặc blocker đã xử lý
+## 6. Hiểu biết end-to-end
 
-- **Triệu chứng/lỗi nguyên văn:** [Che toàn bộ secret trước khi ghi.]
-- **Lệnh hoặc bước tái hiện:** [Lệnh/bước.]
-- **Nguyên nhân gốc:** [Root cause, không chỉ mô tả triệu chứng.]
-- **Cách xử lý:** [Thay đổi cụ thể.]
-- **Cách xác minh sau khi sửa:** [Lệnh và kết quả.]
-- **Điều học được:** [Bài học kỹ thuật.]
+1. `claimed_order_id` đi vào Coordinator, sau đó các domain agent tạo customer/order/payment/delivery handoff.
+2. Policy Agent áp dụng EC_POLICY_V2 theo thứ tự ưu tiên; Verifier kiểm tra lại evidence, limits, refund và schema.
+3. Chỉ output đã qua verifier mới được ghi staging rồi promote thành 50 JSON chính thức.
+4. `trace.jsonl` là bằng chứng runtime của agent/model/tool handoff; `metadata.json` là cấu hình và thống kê run.
+5. Không có item thì totals item/freight là `0.0`, còn expected/difference/reconciled là `null`; đây là trường hợp cần kiểm thử riêng.
 
-Nếu chưa xử lý xong:
+## 7. Cam kết
 
-- **Phạm vi bị ảnh hưởng:** [Module/artifact.]
-- **Những gì đã loại trừ:** [Các giả thuyết đã kiểm tra.]
-- **Bước tiếp theo:** [Hành động có thể kiểm chứng.]
-
-## 7. Hiểu biết về luồng end-to-end
-
-Giải thích ngắn gọn bằng lời của bạn:
-
-1. Dữ liệu đi từ Crossref đến vector index như thế nào?
-2. Evaluation set và ground-truth document IDs dùng để đo retrieval/answer quality ra sao?
-3. Quality checks khác freshness monitoring ở điểm nào trong bài lab?
-4. Vì sao phải dùng cùng test set cho baseline, corrupted và repaired?
-5. Repair được xem là thành công dựa trên artifact và metric nào?
-
-**Câu trả lời:**
-
-[Viết câu trả lời tại đây.]
-
-## 8. Cam kết của thành viên
-
-Đánh dấu sau khi tự kiểm tra:
-
-- [ ] Nội dung báo cáo phản ánh đúng phần việc và mức hiểu của tôi.
-- [ ] Tôi có thể giải thích luồng end-to-end, không chỉ module mình phụ trách.
-- [ ] Tôi không ghi “đã chạy thành công” cho phần chưa được kiểm chứng.
-- [ ] Báo cáo không chứa `.env`, API key, token hoặc secret.
-- [ ] Báo cáo này không phải bản sao nguyên văn của báo cáo nhóm hoặc báo cáo thành viên khác.
+- [ ] Nội dung phản ánh đúng phần việc trực tiếp thực hiện.
+- [ ] Không chứa API key, token hoặc secret.
+- [ ] Đã chạy lệnh xác minh thực tế trước khi ký.
 
 **Họ và tên:** [Họ và tên]
 **Ngày xác nhận:** [YYYY-MM-DD]
