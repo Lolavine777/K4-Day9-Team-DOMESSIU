@@ -1,7 +1,9 @@
 {
-  "model": "gpt-4o-mini",
-  "parameter_size": "under 10B",
-  "parameter size": "under 10B",
+  "model": "llama-3.1-8b-instant",
+  "parameter_size": 8000000000,
   "framework": "Custom Python Multi-Agent Framework",
-  "runtime": "Python 3.12"
+  "runtime": "Python 3.12",
+  "cohort": "K4",
+  "policy_version": "EC_POLICY_V2",
+  "repo_starter": "Lolavine777/K4-Day9-Team-DOMESSIU"
 }
