@@ -41,6 +41,7 @@ def delivery(*, late=False, late_sellers=()):
         delivery_variance_hours=Decimal("48.00") if late else Decimal("-24.00"),
         seller_handoff_analysis=[],
         late_handoff_seller_ids=list(late_sellers),
+        all_late_handoff_seller_ids=list(late_sellers),
     )
 
 
@@ -76,6 +77,9 @@ def test_unavailable_order_without_items_keeps_item_reconciliation_null():
         item_total_brl=Decimal("0.00"),
         freight_total_brl=Decimal("0.00"),
         seller_shipping_limits={},
+        item_count=0,
+        seller_count=0,
+        category_count=0,
     )
     decision = PolicyEngine().decide(
         order_product=facts,

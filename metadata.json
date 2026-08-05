@@ -1,0 +1,102 @@
+{
+  "policy_version": "EC_POLICY_V2",
+  "models": [
+    {
+      "agent": "coordinator",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "customer",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "order_product",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "payment",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "delivery",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "policy",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "verifier",
+      "scope": "default",
+      "model": "meta/llama-3.1-8b-instruct",
+      "parameter_size": "8B",
+      "provider": "nvidia"
+    },
+    {
+      "agent": "customer",
+      "scope": "EC_001",
+      "model": "nvidia/nemotron-nano-9b-v2:free",
+      "parameter_size": "9B",
+      "provider": "openrouter"
+    }
+  ],
+  "framework": {
+    "name": "LangGraph",
+    "version": "1.2.9"
+  },
+  "runtime": {
+    "language": "Python",
+    "version": "3.10.11",
+    "platform": "Windows-10-10.0.22631-SP0"
+  },
+  "run": {
+    "run_id": "886ee5986bef4c23b212d949d4453ef4",
+    "started_at": "2026-08-05T10:02:40.752644+00:00",
+    "completed_at": "2026-08-05T10:16:31.741049+00:00",
+    "cases_total": 50,
+    "cases_succeeded": 50,
+    "model_calls": 400,
+    "model_attempts": 402,
+    "model_failures": 2,
+    "calls_by_agent": {
+      "coordinator": 100,
+      "customer": 50,
+      "delivery": 50,
+      "order_product": 50,
+      "payment": 50,
+      "policy": 50,
+      "verifier": 50
+    },
+    "calls_by_provider": {
+      "nvidia": 399,
+      "openrouter": 1
+    },
+    "primary_issue_distribution": {
+      "canceled_order_paid": 8,
+      "late_delivery_logistics": 10,
+      "late_delivery_seller": 10,
+      "unavailable_order_paid": 6,
+      "unsupported_late_claim": 8,
+      "valid_split_payment": 8
+    },
+    "strict_model_invocation": true
+  }
+}

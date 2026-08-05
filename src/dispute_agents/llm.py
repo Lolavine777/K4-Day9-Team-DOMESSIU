@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
-from .config import MODEL_BY_AGENT, PROVIDER_BY_NAME, ProviderName
+from .config import PROVIDER_BY_NAME, ProviderName, model_for_agent
 from .tracing import TraceLogger
 
 
@@ -21,11 +21,20 @@ class LLMClient(Protocol):
 class MultiProviderLLM:
     """Routes each agent call to its configured OpenAI-compatible provider."""
 
-    def __init__(self, secrets: dict[str, str | None] | None = None, client_factory: Callable[..., OpenAI] = OpenAI):
+    def __init__(
+        self,
+        secrets: dict[str, str | None] | None = None,
+        client_factory: Callable[..., OpenAI] = OpenAI,
+        clock: Callable[[], float] = time.monotonic,
+        sleeper: Callable[[float], None] = time.sleep,
+    ):
         load_dotenv()
         self.secrets = secrets or {}
         self.client_factory = client_factory
         self.clients: dict[ProviderName, OpenAI] = {}
+        self.clock = clock
+        self.sleeper = sleeper
+        self.last_request_started: dict[ProviderName, float] = {}
 
     def client_for(self, provider: ProviderName) -> OpenAI:
         if provider not in PROVIDER_BY_NAME:
@@ -33,7 +42,7 @@ class MultiProviderLLM:
         if provider in self.clients:
             return self.clients[provider]
         config = PROVIDER_BY_NAME[provider]
-        token = "ollama" if config.credential_env is None else self.secrets.get(config.credential_env) or os.getenv(config.credential_env)
+        token = self.secrets.get(config.credential_env) or os.getenv(config.credential_env)
         if not token:
             raise RuntimeError(f"{config.credential_env} is required for {provider}. Copy .env.example to .env and set it.")
         client = self.client_factory(base_url=config.base_url, api_key=token, timeout=60.0)
@@ -41,7 +50,14 @@ class MultiProviderLLM:
         return client
 
     def complete(self, *, provider: ProviderName, model: str, system: str, payload: dict) -> str:
-        completion = self.client_for(provider).chat.completions.create(
+        client = self.client_for(provider)
+        self._pace(provider)
+        provider_options = (
+            {"extra_body": {"reasoning": {"effort": "low", "exclude": True}}}
+            if provider == "openrouter"
+            else {}
+        )
+        completion = client.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": system},
@@ -49,8 +65,20 @@ class MultiProviderLLM:
             ],
             temperature=0,
             max_tokens=max_tokens_for_model(model),
+            **provider_options,
         )
         return completion.choices[0].message.content or ""
+
+    def _pace(self, provider: ProviderName) -> None:
+        interval = PROVIDER_BY_NAME[provider].min_request_interval_seconds
+        now = self.clock()
+        previous = self.last_request_started.get(provider)
+        if previous is not None:
+            delay = interval - (now - previous)
+            if delay > 0:
+                self.sleeper(delay)
+                now = self.clock()
+        self.last_request_started[provider] = now
 
 
 class FakeLLM:
@@ -112,13 +140,20 @@ def parse_model_json(raw: str) -> dict:
 
 
 class AgentInvoker:
-    def __init__(self, llm: LLMClient, trace: TraceLogger, retries: int = 2):
+    def __init__(
+        self,
+        llm: LLMClient,
+        trace: TraceLogger,
+        retries: int = 2,
+        sleeper: Callable[[float], None] = time.sleep,
+    ):
         self.llm = llm
         self.trace = trace
         self.retries = retries
+        self.sleeper = sleeper
 
     def call(self, *, agent: str, case_id: str, payload: dict, response_model: type[T] | None = None) -> T | str:
-        config = MODEL_BY_AGENT[agent]
+        config = model_for_agent(agent, case_id)
         error: Exception | None = None
         for attempt in range(1, self.retries + 1):
             started = time.perf_counter()
@@ -133,4 +168,16 @@ class AgentInvoker:
             except Exception as exc:  # provider failures are expected operational errors
                 error = exc
                 self.trace.model_event(case_id=case_id, agent=agent, model=config.model, provider=config.provider, started=started, attempt=attempt, status="failed")
+                if attempt < self.retries and getattr(exc, "status_code", None) == 429:
+                    delay_seconds = 35.0
+                    self.trace.event(
+                        case_id=case_id,
+                        agent=agent,
+                        event="retry_scheduled",
+                        provider=config.provider,
+                        attempt=attempt + 1,
+                        delay_seconds=delay_seconds,
+                        reason="rate_limit",
+                    )
+                    self.sleeper(delay_seconds)
         raise RuntimeError(f"{agent} model failed after {self.retries} attempts: {error}")

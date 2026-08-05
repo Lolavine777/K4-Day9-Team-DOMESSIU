@@ -1,13 +1,49 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+PrimaryIssue: TypeAlias = Literal[
+    "canceled_order_paid",
+    "unavailable_order_paid",
+    "late_delivery_seller",
+    "late_delivery_logistics",
+    "valid_split_payment",
+    "unsupported_late_claim",
+]
+SecondaryIssue: TypeAlias = Literal[
+    "multi_item_order",
+    "multi_seller_order",
+    "split_payment",
+    "repeat_customer",
+    "multiple_categories",
+]
+RootCauseCode: TypeAlias = Literal[
+    "SELLER_HANDOFF_AFTER_LIMIT",
+    "CARRIER_DELIVERED_AFTER_ESTIMATE",
+    "ORDER_CANCELED_AFTER_PAYMENT",
+    "ORDER_UNAVAILABLE_AFTER_PAYMENT",
+    "MULTIPLE_PAYMENTS_RECONCILED",
+    "DELIVERY_WITHIN_ESTIMATE",
+]
+ResolutionAction: TypeAlias = Literal[
+    "issue_full_refund",
+    "refund_freight",
+    "explain_valid_split_payment",
+    "reject_late_refund",
+    "review_seller_handoff",
+    "review_carrier_delay",
+    "verify_refund_completion",
+    "coordinate_multi_seller_case",
+    "verify_payment_allocation",
+]
 
 
 class CustomerRequest(StrictModel):
@@ -22,7 +58,7 @@ class InvestigationScope(StrictModel):
 
 
 class CaseInput(StrictModel):
-    case_id: str
+    case_id: str = Field(pattern=r"^EC_[0-9]{3}$")
     customer_request: CustomerRequest
     investigation_scope: InvestigationScope
     policy_version: Literal["EC_POLICY_V2"]
@@ -43,9 +79,9 @@ class OrderProductHandoff(StrictModel):
     item_total_brl: Decimal
     freight_total_brl: Decimal
     seller_shipping_limits: dict[str, str]
-    item_count: int = 0
-    seller_count: int = 0
-    category_count: int = 0
+    item_count: int = Field(ge=0)
+    seller_count: int = Field(ge=0)
+    category_count: int = Field(ge=0)
 
 
 class PaymentHandoff(StrictModel):
@@ -55,7 +91,7 @@ class PaymentHandoff(StrictModel):
     expected_total_brl: Decimal | None
     difference_brl: Decimal | None
     reconciled: bool | None
-    payment_count: int = 0
+    payment_count: int = Field(ge=0)
 
 
 class SellerHandoffAnalysis(StrictModel):
@@ -72,7 +108,7 @@ class DeliveryHandoff(StrictModel):
     delivery_variance_hours: Decimal | None
     seller_handoff_analysis: list[SellerHandoffAnalysis] = Field(max_length=3)
     late_handoff_seller_ids: list[str] = Field(max_length=3)
-    all_late_handoff_seller_ids: list[str] = Field(default_factory=list)
+    all_late_handoff_seller_ids: list[str]
 
     @classmethod
     def empty(cls) -> "DeliveryHandoff":
@@ -108,36 +144,29 @@ class ResponsibleParty(StrictModel):
 
 
 class RankedCause(StrictModel):
-    cause_code: str
+    cause_code: RootCauseCode
     rank: int = Field(ge=1, le=3)
 
 
 class PolicyDecision(StrictModel):
-    primary_issue: Literal[
-        "canceled_order_paid",
-        "unavailable_order_paid",
-        "late_delivery_seller",
-        "late_delivery_logistics",
-        "valid_split_payment",
-        "unsupported_late_claim",
-    ]
-    secondary_issues: list[str]
-    root_cause_code: str
+    primary_issue: PrimaryIssue
+    secondary_issues: list[SecondaryIssue] = Field(max_length=5)
+    root_cause_code: RootCauseCode
     responsible_parties: list[ResponsibleParty] = Field(max_length=3)
     case_status: Literal["action_required", "no_action"]
-    recommended_refund_brl: Decimal
-    resolution_actions: list[str] = Field(max_length=5)
+    recommended_refund_brl: Decimal = Field(ge=0)
+    resolution_actions: list[ResolutionAction] = Field(min_length=1, max_length=5)
 
 
 class CaseAssessment(StrictModel):
-    primary_issue: str
-    secondary_issues: list[str]
+    primary_issue: PrimaryIssue
+    secondary_issues: list[SecondaryIssue] = Field(max_length=5)
     case_status: Literal["action_required", "no_action"]
     confidence: float = Field(ge=0, le=1)
 
 
 class AffectedEntities(StrictModel):
-    order_ids: list[str] = Field(max_length=5)
+    order_ids: list[str] = Field(min_length=1, max_length=5)
     item_ids: list[str] = Field(max_length=5)
     seller_ids: list[str] = Field(max_length=3)
     payment_ids: list[str] = Field(max_length=5)
@@ -174,13 +203,13 @@ class PaymentReconciliation(StrictModel):
 
 
 class RootCauseAnalysis(StrictModel):
-    ranked_causes: list[RankedCause] = Field(max_length=3)
+    ranked_causes: list[RankedCause] = Field(min_length=1, max_length=3)
     responsible_parties: list[ResponsibleParty] = Field(max_length=3)
 
 
 class FinancialResolution(StrictModel):
     currency: Literal["BRL"] = "BRL"
-    recommended_refund_brl: Decimal
+    recommended_refund_brl: Decimal = Field(ge=0)
 
 
 class CaseOutput(StrictModel):
@@ -192,6 +221,6 @@ class CaseOutput(StrictModel):
     delivery_analysis: DeliveryAnalysis
     payment_reconciliation: PaymentReconciliation
     root_cause_analysis: RootCauseAnalysis
-    evidence_ids: list[str] = Field(max_length=20)
+    evidence_ids: list[str] = Field(min_length=1, max_length=20)
     financial_resolution: FinancialResolution
-    resolution_actions: list[str] = Field(max_length=5)
+    resolution_actions: list[ResolutionAction] = Field(min_length=1, max_length=5)

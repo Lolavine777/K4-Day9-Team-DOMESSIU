@@ -2,10 +2,12 @@ import json
 from collections import Counter
 from pathlib import Path
 
+import pytest
+
 from dispute_agents.llm import FakeLLM
 from dispute_agents.models import CaseInput
 from dispute_agents.repository import OlistRepository
-from dispute_agents.validation import validate_case_payload
+from dispute_agents.validation import validate_case_payload, validate_output_against_source
 from dispute_agents.workflow import DisputeWorkflow
 
 
@@ -32,3 +34,13 @@ def test_all_lab_cases_match_expected_policy_distribution_with_mocked_models():
     }
     for output in outputs:
         validate_case_payload(output.model_dump(mode="python"))
+
+
+def test_source_backed_validator_rejects_schema_valid_but_wrong_evidence():
+    case = CaseInput.model_validate(json.loads((ROOT / "input" / "EC_001.json").read_text(encoding="utf-8")))
+    repository = OlistRepository(ROOT / "data")
+    output = DisputeWorkflow(repository=repository, llm=FakeLLM()).run_case(case)
+    output.evidence_ids[0] = "order:00000000000000000000000000000000"
+
+    with pytest.raises(ValueError, match="differs from deterministic CSV/policy result"):
+        validate_output_against_source(output=output, case=case, repository=repository)

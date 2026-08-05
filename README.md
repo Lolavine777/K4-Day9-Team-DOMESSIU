@@ -5,16 +5,23 @@
 ```powershell
 python -m pip install -e .
 Copy-Item .env.example .env
-# Install Ollama, then download the local model.
-ollama pull qwen3:8b
 # Add OPENROUTER_API_KEY and NVIDIA_API_KEY to .env.
 python -m dispute_agents preflight-models
+python -m dispute_agents smoke --case-id EC_001
 python -m dispute_agents run
 python -m dispute_agents validate
 python -m dispute_agents package
 ```
 
-Pipeline dùng LangGraph với bảy agent model-backed. `run` ở strict mode: không có fallback khi model/provider lỗi; output chỉ được thay sau khi toàn bộ 50 case qua Pydantic/evidence validation.
+Pipeline dùng LangGraph với bảy agent model-backed. `run` ở strict mode: không có fallback khi model/provider lỗi; output chỉ được thay sau khi toàn bộ 50 case qua Pydantic, evidence và đối chiếu lại CSV/EC_POLICY_V2. `trace.jsonl` và `metadata.json` được sinh tại root repo; file zip chỉ chứa 50 JSON trong `output/`.
+
+Các lệnh triển khai:
+
+- `preflight-models`: gọi thật từng provider/model đã cấu hình và từ chối response rỗng.
+- `smoke`: chạy thật một case, không ghi output, rồi đối chiếu kết quả với CSV/policy.
+- `run`: chạy đủ 50 case vào staging, hard-gate toàn bộ trường chấm điểm, sau đó mới promote.
+- `validate`: kiểm lại 50 output từ nguồn, đồng thời xác minh trace có đủ 7 agent/400 model call và metadata khớp run.
+- `package`: kiểm lại nguồn rồi tạo zip chỉ gồm `EC_001.json` đến `EC_050.json`.
 
 ## 1. Bài toán
 

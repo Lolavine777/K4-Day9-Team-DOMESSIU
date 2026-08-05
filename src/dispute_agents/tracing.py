@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,10 @@ class TraceLogger:
         self.run_id = run_id or uuid.uuid4().hex
         self.events: list[dict[str, Any]] = []
         self.model_calls = 0
+        self.model_attempts = 0
+        self.model_failures = 0
+        self.calls_by_agent: Counter[str] = Counter()
+        self.calls_by_provider: Counter[str] = Counter()
         if path:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("", encoding="utf-8")
@@ -33,7 +38,13 @@ class TraceLogger:
                 handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
     def model_event(self, *, case_id: str, agent: str, model: str, provider: str, started: float, attempt: int, status: str) -> None:
-        self.model_calls += 1 if status == "completed" else 0
+        self.model_attempts += 1
+        if status == "completed":
+            self.model_calls += 1
+            self.calls_by_agent[agent] += 1
+            self.calls_by_provider[provider] += 1
+        else:
+            self.model_failures += 1
         self.event(
             case_id=case_id,
             agent=agent,
