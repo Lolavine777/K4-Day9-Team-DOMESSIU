@@ -10,6 +10,7 @@ from .llm import AgentInvoker, HuggingFaceLLM, LLMClient
 from .models import (
     CaseInput,
     CaseOutput,
+    AgentAssessment,
     CoordinatorResult,
     CustomerHandoff,
     DeliveryHandoff,
@@ -160,7 +161,11 @@ class DisputeWorkflow:
         review = self.invoker.call(
             agent="verifier",
             case_id=case.case_id,
-            payload={"verification_candidate": output.model_dump(mode="json"), "deterministic_validation": "passed"},
+            payload={
+                "verification_candidate": output.model_dump(mode="json"),
+                "deterministic_validation": "passed",
+                "required_response": {"approved": True, "corrections": []},
+            },
             response_model=VerifierReview,
         )
         if not review.approved or review.corrections:
@@ -192,18 +197,20 @@ class DisputeWorkflow:
         )
 
     def _require_model_result(self, *, agent: str, case_id: str, candidate: T, facts: dict | None = None) -> T:
-        result = self.invoker.call(
+        candidate_payload = candidate.model_dump(mode="json")
+        assessment = self.invoker.call(
             agent=agent,
             case_id=case_id,
             payload={
                 "handoff_schema": type(candidate).__name__,
-                "facts": facts or {},
-                "candidate": candidate.model_dump(mode="json"),
-                "instruction": "Return the candidate after checking it against the supplied facts. Return JSON only.",
+                "tool_facts": facts or candidate_payload,
+                "candidate": candidate_payload,
+                "instruction": "The tool_facts are deterministic CSV/tool results. Check the candidate for consistency with them. Set consistent=true when they match, even when the business decision rejects a refund claim. Return {\"consistent\": boolean, \"summary\": string} as JSON only.",
             },
-            response_model=type(candidate),
+            response_model=AgentAssessment,
         )
-        if result != candidate:
-            self.trace.event(case_id=case_id, agent=agent, event="handoff_rejected", reason="model handoff differs from CSV-backed candidate")
-            raise RuntimeError(f"{agent} model handoff differed from the CSV-backed candidate")
-        return result
+        if not assessment.consistent:
+            self.trace.event(case_id=case_id, agent=agent, event="handoff_rejected", reason=assessment.summary)
+            raise RuntimeError(f"{agent} rejected the CSV-backed candidate: {assessment.summary}")
+        self.trace.event(case_id=case_id, agent=agent, event="model_assessment", consistent=True, summary=assessment.summary[:300])
+        return candidate

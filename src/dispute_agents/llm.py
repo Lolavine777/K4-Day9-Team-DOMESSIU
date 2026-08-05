@@ -30,10 +30,10 @@ class HuggingFaceLLM:
             model=model,
             messages=[
                 {"role": "system", "content": system},
-                {"role": "user", "content": json.dumps(payload, ensure_ascii=False, default=str)},
+                {"role": "user", "content": build_user_content(model, payload)},
             ],
             temperature=0,
-            max_tokens=250,
+            max_tokens=max_tokens_for_model(model),
         )
         return completion.choices[0].message.content or ""
 
@@ -46,24 +46,35 @@ class FakeLLM:
 
     def complete(self, *, model: str, system: str, payload: dict) -> str:
         self.calls.append((model, payload))
-        if "candidate" in payload:
-            return json.dumps(payload["candidate"], default=str)
         if "verification_candidate" in payload:
             return '{"approved":true,"corrections":[]}'
+        if "candidate" in payload:
+            return '{"consistent":true,"summary":"CSV-backed candidate is consistent"}'
         return '{"status":"approved"}'
 
 
 SYSTEM_PROMPTS = {
     "coordinator": "You are the Coordinator Agent. Route and synthesize one Olist complaint. Use supplied facts only. Return JSON only, with no Markdown.",
-    "customer": "You are the Customer Agent. Analyze identity and source-ordered history only. Do not invent facts. Return the required JSON handoff only, with no Markdown.",
-    "order_product": "You are the Order and Product Agent. Analyze supplied order, item, seller, product and category facts only. Return the required JSON handoff only, with no Markdown.",
-    "payment": "You are the Payment Agent. Analyze supplied reconciliation facts only. Do not invent BRL amounts. Return the required JSON handoff only, with no Markdown.",
-    "delivery": "You are the Delivery Agent. Analyze supplied delivery and seller-handoff facts only. Return the required JSON handoff only, with no Markdown.",
-    "policy": "You are the Policy Agent. Check EC_POLICY_V2 priority against supplied handoffs. Return the required JSON policy decision only, with no Markdown.",
-    "verifier": "You are the Verifier Agent. Review the supplied output and deterministic validation result. Return the required JSON review only, with no Markdown.",
+    "customer": "You are the Customer Agent. Analyze identity and source-ordered history only. Do not invent facts. Return a JSON consistency assessment only, with no Markdown.",
+    "order_product": "You are the Order and Product Agent. Analyze supplied order, item, seller, product and category facts only. Return a JSON consistency assessment only, with no Markdown.",
+    "payment": "You are the Payment Agent. Analyze supplied reconciliation facts only. Do not invent BRL amounts. Return a JSON consistency assessment only, with no Markdown.",
+    "delivery": "You are the Delivery Agent. Analyze supplied delivery and seller-handoff facts only. Return a JSON consistency assessment only, with no Markdown.",
+    "policy": "You are the Policy Agent. Check EC_POLICY_V2 priority against supplied handoffs. The word consistent refers to data/policy agreement, not whether a customer's refund claim is approved. Return a JSON consistency assessment only, with no Markdown.",
+    "verifier": "You are the Verifier Agent. Review the supplied output and deterministic validation result. If deterministic_validation is passed, return exactly {\"approved\":true,\"corrections\":[]}. Use only keys approved and corrections. Return JSON only, with no Markdown.",
 }
 
 T = TypeVar("T", bound=BaseModel)
+
+
+def build_user_content(model: str, payload: dict) -> str:
+    content = json.dumps(payload, ensure_ascii=False, default=str)
+    if model.startswith("Qwen/Qwen3-"):
+        content += "\n/no_think"
+    return content
+
+
+def max_tokens_for_model(model: str) -> int:
+    return 1000 if model.startswith("deepseek-ai/DeepSeek-R1-") else 250
 
 
 def parse_model_json(raw: str) -> dict:

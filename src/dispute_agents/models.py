@@ -92,6 +92,11 @@ class CoordinatorResult(StrictModel):
     status: Literal["ready", "complete"]
 
 
+class AgentAssessment(StrictModel):
+    consistent: bool
+    summary: str
+
+
 class VerifierReview(StrictModel):
     approved: bool
     corrections: list[str] = Field(default_factory=list)
