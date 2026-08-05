@@ -7,7 +7,7 @@
       "repeat_customer"
     ],
     "case_status": "action_required",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -36,7 +36,7 @@
       "9388e84da6051e85eb86fc653c3aa64f"
     ],
     "category_names": [
-      "cama_mesa_banho"
+      "bed_bath_table"
     ]
   },
   "delivery_analysis": {
@@ -65,6 +65,7 @@
     "difference_brl": 0.0,
     "reconciled": true,
     "payment_types": [
+      "voucher",
       "voucher",
       "credit_card"
     ]
@@ -99,7 +100,6 @@
   "resolution_actions": [
     "refund_freight",
     "review_seller_handoff",
-    "verify_refund_completion",
     "verify_payment_allocation"
   ]
 }

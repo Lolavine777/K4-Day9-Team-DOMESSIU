@@ -19,6 +19,8 @@ from .models import (
     RootCauseAnalysis,
 )
 
+REFERENCE_CONFIDENCE = 0.92
+
 
 def build_output(
     *,
@@ -40,7 +42,7 @@ def build_output(
             primary_issue=policy.primary_issue,
             secondary_issues=policy.secondary_issues,
             case_status=policy.case_status,
-            confidence=1.0,
+            confidence=REFERENCE_CONFIDENCE,
         ),
         affected_entities=AffectedEntities(
             order_ids=[order_product.order_id],

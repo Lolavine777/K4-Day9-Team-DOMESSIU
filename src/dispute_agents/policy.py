@@ -86,7 +86,7 @@ class PolicyEngine:
             actions.append("review_seller_handoff")
         elif primary == "late_delivery_logistics":
             actions.append("review_carrier_delay")
-        if refund > 0:
+        if primary in {"canceled_order_paid", "unavailable_order_paid"}:
             actions.append("verify_refund_completion")
         if "multi_seller_order" in secondary:
             actions.append("coordinate_multi_seller_case")

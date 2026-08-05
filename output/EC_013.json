@@ -7,7 +7,7 @@
       "split_payment"
     ],
     "case_status": "action_required",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -35,7 +35,7 @@
       "ce066f4a83649651549d717c9b566816"
     ],
     "category_names": [
-      "esporte_lazer"
+      "sports_leisure"
     ]
   },
   "delivery_analysis": {
@@ -98,7 +98,6 @@
   "resolution_actions": [
     "refund_freight",
     "review_seller_handoff",
-    "verify_refund_completion",
     "verify_payment_allocation"
   ]
 }

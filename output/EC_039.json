@@ -7,7 +7,7 @@
       "repeat_customer"
     ],
     "case_status": "action_required",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -35,7 +35,7 @@
       "e53e557d5a159f5aa2c5e995dfdf244b"
     ],
     "category_names": [
-      "informatica_acessorios"
+      "computers_accessories"
     ]
   },
   "delivery_analysis": {
@@ -95,7 +95,6 @@
   },
   "resolution_actions": [
     "refund_freight",
-    "review_seller_handoff",
-    "verify_refund_completion"
+    "review_seller_handoff"
   ]
 }

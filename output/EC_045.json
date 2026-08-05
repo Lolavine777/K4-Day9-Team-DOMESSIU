@@ -8,7 +8,7 @@
       "multiple_categories"
     ],
     "case_status": "no_action",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -36,8 +36,8 @@
       "78efe838c04bbc568be034082200ac20"
     ],
     "category_names": [
-      "cama_mesa_banho",
-      "moveis_decoracao"
+      "bed_bath_table",
+      "furniture_decor"
     ]
   },
   "delivery_analysis": {

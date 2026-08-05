@@ -7,7 +7,7 @@
       "repeat_customer"
     ],
     "case_status": "action_required",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -36,7 +36,7 @@
       "6d1d611877ca6fe8901e27ea00df988b"
     ],
     "category_names": [
-      "brinquedos"
+      "toys"
     ]
   },
   "delivery_analysis": {
@@ -64,7 +64,8 @@
     "reconciled": true,
     "payment_types": [
       "voucher",
-      "credit_card"
+      "credit_card",
+      "voucher"
     ]
   },
   "root_cause_analysis": {
@@ -96,7 +97,6 @@
   "resolution_actions": [
     "refund_freight",
     "review_carrier_delay",
-    "verify_refund_completion",
     "verify_payment_allocation"
   ]
 }

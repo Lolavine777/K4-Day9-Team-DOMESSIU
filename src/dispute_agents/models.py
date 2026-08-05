@@ -86,7 +86,7 @@ class OrderProductHandoff(StrictModel):
 
 class PaymentHandoff(StrictModel):
     payment_ids: list[str] = Field(max_length=5)
-    payment_types: list[str]
+    payment_types: list[str] = Field(max_length=5)
     payment_total_brl: Decimal
     expected_total_brl: Decimal | None
     difference_brl: Decimal | None
@@ -199,7 +199,7 @@ class PaymentReconciliation(StrictModel):
     payment_total_brl: Decimal
     difference_brl: Decimal | None
     reconciled: bool | None
-    payment_types: list[str]
+    payment_types: list[str] = Field(max_length=5)
 
 
 class RootCauseAnalysis(StrictModel):

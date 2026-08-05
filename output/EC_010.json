@@ -8,7 +8,7 @@
       "split_payment"
     ],
     "case_status": "no_action",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -37,7 +37,7 @@
       "e0d64dcfaa3b6db5c54ca298ae101d05"
     ],
     "category_names": [
-      "relogios_presentes"
+      "watches_gifts"
     ]
   },
   "delivery_analysis": {
@@ -70,6 +70,7 @@
     "difference_brl": 0.0,
     "reconciled": true,
     "payment_types": [
+      "credit_card",
       "credit_card"
     ]
   },

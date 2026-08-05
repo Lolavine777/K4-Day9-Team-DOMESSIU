@@ -6,7 +6,7 @@
       "multi_item_order"
     ],
     "case_status": "action_required",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -32,7 +32,7 @@
       "9f2597e311355defa12f1491420d40d5"
     ],
     "category_names": [
-      "esporte_lazer"
+      "sports_leisure"
     ]
   },
   "delivery_analysis": {

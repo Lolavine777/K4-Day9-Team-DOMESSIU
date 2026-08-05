@@ -59,9 +59,11 @@ def order_product_handoff(case: CaseInput, repo: OlistRepository) -> OrderProduc
     item_total = money(sum((parse_brl_decimal(row["price"]) for row in items), Decimal("0")))
     freight_total = money(sum((parse_brl_decimal(row["freight_value"]) for row in items), Decimal("0")))
     all_product_ids = stable_unique([row["product_id"] for row in items])
-    all_categories = stable_unique(
-        [product["product_category_name"] for product_id in all_product_ids if (product := repo.product(product_id))]
-    )
+    all_categories = stable_unique([
+        repo.translated_category(product["product_category_name"])
+        for product_id in all_product_ids
+        if (product := repo.product(product_id)) and product["product_category_name"]
+    ])
     all_seller_ids = stable_unique([row["seller_id"] for row in items])
     product_ids = all_product_ids[:5]
     categories = all_categories[:5]
@@ -100,7 +102,7 @@ def payment_handoff(case: CaseInput, repo: OlistRepository, order_product: Order
         reconciled = abs(difference) <= Decimal("0.10")
     return PaymentHandoff(
         payment_ids=[f"{order_id}:{row['payment_sequential']}" for row in payments[:5]],
-        payment_types=stable_unique([row["payment_type"] for row in payments]),
+        payment_types=[row["payment_type"] for row in payments[:5]],
         payment_total_brl=payment_total,
         expected_total_brl=expected,
         difference_brl=difference,

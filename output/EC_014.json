@@ -7,7 +7,7 @@
       "repeat_customer"
     ],
     "case_status": "action_required",
-    "confidence": 1.0
+    "confidence": 0.92
   },
   "affected_entities": {
     "order_ids": [
@@ -36,7 +36,7 @@
       "727a46f0b58a9ef165af9f7ebcfebfa9"
     ],
     "category_names": [
-      "esporte_lazer"
+      "sports_leisure"
     ]
   },
   "delivery_analysis": {
@@ -94,7 +94,6 @@
   },
   "resolution_actions": [
     "refund_freight",
-    "review_carrier_delay",
-    "verify_refund_completion"
+    "review_carrier_delay"
   ]
 }

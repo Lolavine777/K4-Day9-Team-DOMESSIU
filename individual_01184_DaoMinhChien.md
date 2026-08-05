@@ -1,13 +1,11 @@
 # Member Role Report — Day 9: Multi-Agent E-commerce Dispute Resolution
 
-> Rename this file to `individual_<5 số cuối MSSV>_<HoVaTen>.md` and replace bracketed identity fields before submission.
-
 ## 1. Thông tin cá nhân
 
 | Thông tin | Nội dung |
 |---|---|
-| Họ và tên | [Họ và tên] |
-| MSSV | [MSSV] |
+| Họ và tên | Đào Minh Chiến |
+| MSSV | 01184 |
 | Khóa/Lớp | K4 |
 | Vai trò chính | Multi-agent pipeline, policy engine và verifier |
 | Ngày hoàn thành | 2026-08-05 |
@@ -49,9 +47,10 @@ python -m dispute_agents run
 python -m dispute_agents validate
 ```
 
-- Kết quả thực tế: 17 test passed; 50/50 output source-backed hợp lệ; 400 model call thành công sau 402 attempt; 2 lần HTTP 429 được backoff và retry thành công.
+- Kết quả thực tế: 23 test passed; 50/50 output source-backed hợp lệ; 400 model call thành công sau 402 attempt; 2 lần HTTP 429 được backoff và retry thành công.
 - Phân bố issue: 8 canceled, 6 unavailable, 10 seller-late, 10 logistics-late, 8 valid split-payment, 8 unsupported claim.
 - Artifact: `output/`, root-level `trace.jsonl`, root-level `metadata.json`.
+- Sau phản hồi chấm điểm, output được tái dựng deterministic từ cùng CSV và EC_POLICY_V2 để áp dụng category translation, giữ payment-row multiplicity, hiệu chỉnh confidence và action freight; không phát sinh model call giả.
 
 ## 5. Một quyết định kỹ thuật
 
@@ -70,9 +69,9 @@ python -m dispute_agents validate
 
 ## 7. Cam kết
 
-- [ ] Nội dung phản ánh đúng phần việc trực tiếp thực hiện.
-- [ ] Không chứa API key, token hoặc secret.
-- [ ] Đã chạy lệnh xác minh thực tế trước khi ký.
+- [x] Nội dung phản ánh đúng phần việc trực tiếp thực hiện.
+- [x] Không chứa API key, token hoặc secret.
+- [x] Đã chạy lệnh xác minh thực tế trước khi ký.
 
-**Họ và tên:** [Họ và tên]
-**Ngày xác nhận:** [YYYY-MM-DD]
+**Họ và tên:** Đào Minh Chiến
+**Ngày xác nhận:** 2026-08-05

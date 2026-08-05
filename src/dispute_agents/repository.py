@@ -33,6 +33,10 @@ class OlistRepository:
         self.orders = frames["orders"].set_index("order_id", drop=False)
         self.customers = frames["customers"].set_index("customer_id", drop=False)
         self.products = frames["products"].set_index("product_id", drop=False)
+        self.category_translations = dict(zip(
+            frames["translations"]["product_category_name"],
+            frames["translations"]["product_category_name_english"],
+        ))
         self._unique_to_orders = self._build_customer_history()
 
     def _build_customer_history(self) -> dict[str, list[str]]:
@@ -73,3 +77,6 @@ class OlistRepository:
         if product_id not in self.products.index:
             return None
         return self.products.loc[product_id].to_dict()
+
+    def translated_category(self, category_name: str) -> str:
+        return self.category_translations.get(category_name, category_name)
