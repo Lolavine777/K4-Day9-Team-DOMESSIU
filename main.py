@@ -9,7 +9,6 @@ from agents import LLMClient, CustomerAgent, OrderProductAgent, PaymentAgent, De
 load_dotenv()
 
 def main():
-    # Setup directories
     workspace_dir = "."
     input_dir = os.path.join(workspace_dir, "input")
     output_dir = os.path.join(workspace_dir, "output")
@@ -18,11 +17,9 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(logging_dir, exist_ok=True)
     
-    # Initialize DataLoader & LLMClient
     data_loader = DataLoader(os.path.join(workspace_dir, "data"))
     llm_client = LLMClient()
     
-    # Initialize agents
     customer_agent = CustomerAgent(llm_client)
     order_product_agent = OrderProductAgent(llm_client)
     payment_agent = PaymentAgent(llm_client)
@@ -30,7 +27,6 @@ def main():
     policy_agent = PolicyAgent(llm_client)
     verifier_agent = VerifierAgent(llm_client)
     
-    # Get all inputs
     input_files = sorted(glob.glob(os.path.join(input_dir, "EC_*.json")))
     print(f"Found {len(input_files)} input files.")
     
@@ -48,17 +44,17 @@ def main():
         claimed_order_id = case_input["customer_request"]["claimed_order_id"]
         
         # 1. Customer Agent
-        customer_res = customer_agent.analyze(data_loader, claimed_order_id)
+        customer_res = customer_agent.analyze(data_loader, case_id, claimed_order_id)
         
         # 2. Order & Product Agent
-        order_res = order_product_agent.analyze(data_loader, claimed_order_id)
+        order_res = order_product_agent.analyze(data_loader, case_id, claimed_order_id)
         has_items = len(order_res["product_ids"]) > 0
         
         # 3. Payment Agent
-        payment_res = payment_agent.analyze(data_loader, claimed_order_id, has_items)
+        payment_res = payment_agent.analyze(data_loader, case_id, claimed_order_id, has_items)
         
         # 4. Delivery Agent
-        delivery_res = delivery_agent.analyze(data_loader, claimed_order_id)
+        delivery_res = delivery_agent.analyze(data_loader, case_id, claimed_order_id)
         
         # 5. Policy Agent (Applies business policy EC_POLICY_V2)
         policy_res = policy_agent.apply_policy(
@@ -126,16 +122,18 @@ def main():
         with open(output_filepath, 'w', encoding='utf-8') as out_f:
             json.dump(final_output, out_f, indent=2, ensure_ascii=False)
             
-        # Write Trace Record
+        # Write Trace Record using LLM Handoffs!
         trace_record = {
             "case_id": case_id,
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "input": case_input,
-            "intermediate_analysis": {
-                "customer": customer_res,
-                "order": order_res,
-                "payment": payment_res,
-                "delivery": delivery_res
+            "coordinator_handoff_trace": {
+                "customer_agent_report": customer_res.get("handoff"),
+                "order_agent_report": order_res.get("handoff"),
+                "payment_agent_report": payment_res.get("handoff"),
+                "delivery_agent_report": delivery_res.get("handoff"),
+                "policy_agent_llm_prompt": policy_res.get("llm_prompt"),
+                "policy_agent_llm_decision": policy_res.get("llm_response")
             },
             "output": final_output
         }
@@ -151,7 +149,6 @@ def main():
         for record in trace_records:
             trace_f.write(json.dumps(record, ensure_ascii=False) + "\n")
             
-    # Print completion summary
     print("\nProcessing complete!")
     print("Primary Issue Statistics:")
     for k, v in stats.items():
