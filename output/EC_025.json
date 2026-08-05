@@ -3,7 +3,8 @@
   "case_assessment": {
     "primary_issue": "unsupported_late_claim",
     "secondary_issues": [
-      "multi_item_order"
+      "multi_item_order",
+      "repeat_customer"
     ],
     "case_status": "no_action",
     "confidence": 1.0
@@ -24,8 +25,10 @@
     ]
   },
   "customer_context": {
-    "customer_unique_id": "",
-    "related_order_ids": []
+    "customer_unique_id": "4b979b432abe14a88cd0cde893952677",
+    "related_order_ids": [
+      "4e3cf72d676f793f15859c9ae34be2ad"
+    ]
   },
   "product_context": {
     "product_ids": [

@@ -3,7 +3,8 @@
   "case_assessment": {
     "primary_issue": "late_delivery_logistics",
     "secondary_issues": [
-      "multi_item_order"
+      "multi_item_order",
+      "repeat_customer"
     ],
     "case_status": "action_required",
     "confidence": 1.0
@@ -24,8 +25,10 @@
     ]
   },
   "customer_context": {
-    "customer_unique_id": "",
-    "related_order_ids": []
+    "customer_unique_id": "e11a1b428e150830944b665cb6b2d5da",
+    "related_order_ids": [
+      "1534abac962760cbb058568f7dffc105"
+    ]
   },
   "product_context": {
     "product_ids": [

@@ -3,7 +3,8 @@
   "case_assessment": {
     "primary_issue": "late_delivery_seller",
     "secondary_issues": [
-      "split_payment"
+      "split_payment",
+      "repeat_customer"
     ],
     "case_status": "action_required",
     "confidence": 1.0
@@ -25,8 +26,10 @@
     ]
   },
   "customer_context": {
-    "customer_unique_id": "",
-    "related_order_ids": []
+    "customer_unique_id": "53c84ac43bbfafb7a6b5d9076ab423c7",
+    "related_order_ids": [
+      "765d8e5f6a9d496c895d21bb271ff1e8"
+    ]
   },
   "product_context": {
     "product_ids": [

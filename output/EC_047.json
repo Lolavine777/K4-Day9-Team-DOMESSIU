@@ -2,7 +2,9 @@
   "case_id": "EC_047",
   "case_assessment": {
     "primary_issue": "canceled_order_paid",
-    "secondary_issues": [],
+    "secondary_issues": [
+      "repeat_customer"
+    ],
     "case_status": "action_required",
     "confidence": 1.0
   },
@@ -21,8 +23,10 @@
     ]
   },
   "customer_context": {
-    "customer_unique_id": "",
-    "related_order_ids": []
+    "customer_unique_id": "0058f300f57d7b93c477a131a59b36c3",
+    "related_order_ids": [
+      "81a93b2fa39e104b865b2bc471c16008"
+    ]
   },
   "product_context": {
     "product_ids": [

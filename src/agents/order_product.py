@@ -106,7 +106,7 @@ class OrderProductAgent(BaseAgent):
             sender=self.name,
             recipient="PaymentAgent",
             question="Analyze payment reconciliation with expected total.",
-            facts_found=facts,
+            facts_found=incoming.facts_found + facts,
             facts_missing=[],
             next_suggestion=f"Order composition analyzed. LLM note: {llm_narrative[:100]}...",
         )

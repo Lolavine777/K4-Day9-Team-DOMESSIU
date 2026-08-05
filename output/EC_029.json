@@ -6,6 +6,7 @@
       "multi_item_order",
       "multi_seller_order",
       "split_payment",
+      "repeat_customer",
       "multiple_categories"
     ],
     "case_status": "no_action",
@@ -29,8 +30,10 @@
     ]
   },
   "customer_context": {
-    "customer_unique_id": "",
-    "related_order_ids": []
+    "customer_unique_id": "19f8fcd23ed70e29220a6a2f13ecd911",
+    "related_order_ids": [
+      "9a43b717c408493ff788aeb5d11d0684"
+    ]
   },
   "product_context": {
     "product_ids": [
