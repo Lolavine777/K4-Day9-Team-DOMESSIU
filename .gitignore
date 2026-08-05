@@ -1,0 +1,24 @@
+# 1. File chứa API Key bảo mật (BẮT BUỘC KHÔNG COMMIT)
+.env
+.env.*
+
+# 2. Thư mục môi trường ảo Python (BẮT BUỘC KHÔNG COMMIT vì rất nặng)
+.venv/
+venv/
+ENV/
+
+# 3. Cache tự động sinh của Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 4. Tệp nén zip kết quả tạm thời
+output.zip
+
+# 5. Cấu hình IDE và Hệ điều hành
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+__pycache__/
+.venv/
