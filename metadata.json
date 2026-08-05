@@ -1,5 +1,5 @@
 {
-  "model": "llama-3.1-8b-instant",
+  "model": "gpt-4o-mini",
   "parameter_size": 8000000000,
   "framework": "Custom Python Multi-Agent Framework",
   "runtime": "Python 3.12",
